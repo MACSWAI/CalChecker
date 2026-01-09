@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calorie Dashboard</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 p-4">
+    <div class="max-w-md mx-auto">
+        <h1 class="text-2xl font-bold mb-4">Daily Logs 🥗</h1>
+        <div id="logs" class="space-y-3">
+            <p class="text-gray-500">Memuat data...</p>
+        </div>
+    </div>
+
+    <!-- Panggil Config -->
+    <script src="js/config.js"></script>
+    <script>
+        const tg = window.Telegram.WebApp;
+        const user = tg.initDataUnsafe.user || { id: 0 };
+
+        // Gunakan variabel dari config.js
+        const supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+
+        async function loadData() {
+            const { data, error } = await supabase
+                .from('calorie_logs')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
+
+            const container = document.getElementById('logs');
+            if (data && data.length > 0) {
+                container.innerHTML = data.map(l => `
+                    <div class="bg-white p-4 rounded-xl shadow-sm flex justify-between">
+                        <span>${l.food_name}</span>
+                        <span class="font-bold text-blue-600">${l.calories} kcal</span>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = "<p>Belum ada data makan hari ini.</p>";
+            }
+        }
+        loadData();
+    </script>
+</body>
+
+</html>
